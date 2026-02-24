@@ -1,0 +1,24 @@
+CREATE TABLE Professor (
+    id TEXT PRIMARY KEY NOT NULL,
+    nome TEXT NOT NULL,
+    email TEXT NOT NULL,
+    status TEXT NOT NULL, -- PENDING | APPROVED
+    role TEXT NOT NULL -- COORDINATOR | PROFESSOR
+);
+
+insert:
+INSERT INTO Professor (id, nome, email, status, role)
+VALUES (?, ?, ?, ?, ?);
+
+update:
+UPDATE Professor SET nome = ?, email = ?, status = ?, role = ?
+WHERE id = ?;
+
+selectAll:
+SELECT * FROM Professor;
+
+selectById:
+SELECT * FROM Professor WHERE id = ?;
+
+delete:
+DELETE FROM Professor WHERE id = ?;

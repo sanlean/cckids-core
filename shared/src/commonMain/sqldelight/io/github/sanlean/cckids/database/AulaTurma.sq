@@ -1,0 +1,18 @@
+CREATE TABLE AulaTurma (
+    aulaId TEXT NOT NULL REFERENCES Aula(id),
+    turmaId TEXT NOT NULL REFERENCES Turma(id),
+    PRIMARY KEY (aulaId, turmaId)
+);
+
+insertTurma:
+INSERT INTO AulaTurma (aulaId, turmaId)
+VALUES (?, ?);
+
+selectTurmasByAula:
+SELECT t.*
+FROM Turma t
+JOIN AulaTurma at ON t.id = at.turmaId
+WHERE at.aulaId = ?;
+
+deleteTurmasByAula:
+DELETE FROM AulaTurma WHERE aulaId = ?;

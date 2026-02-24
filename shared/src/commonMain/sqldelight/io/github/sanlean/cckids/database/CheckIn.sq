@@ -1,0 +1,25 @@
+import kotlinx.datetime.LocalDateTime;
+
+CREATE TABLE CheckIn (
+    id TEXT PRIMARY KEY NOT NULL,
+    aulaId TEXT NOT NULL REFERENCES Aula(id),
+    alunoId TEXT NOT NULL REFERENCES Aluno(id),
+    registradoPorProfessorId TEXT NOT NULL REFERENCES Professor(id),
+    dataHora TEXT AS LocalDateTime NOT NULL
+);
+
+insert:
+INSERT INTO CheckIn (id, aulaId, alunoId, registradoPorProfessorId, dataHora)
+VALUES (?, ?, ?, ?, ?);
+
+selectByAula:
+SELECT * FROM CheckIn WHERE aulaId = ?;
+
+selectByAluno:
+SELECT * FROM CheckIn WHERE alunoId = ?;
+
+selectByAulaAndAluno:
+SELECT * FROM CheckIn WHERE aulaId = ? AND alunoId = ?;
+
+delete:
+DELETE FROM CheckIn WHERE id = ?;

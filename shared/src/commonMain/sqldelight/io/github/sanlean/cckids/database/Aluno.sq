@@ -1,0 +1,27 @@
+CREATE TABLE Aluno (
+    id TEXT PRIMARY KEY NOT NULL,
+    nome TEXT NOT NULL,
+    dataNascimento TEXT, -- Armazenado como ISO-8601 string
+    idadeManual INTEGER,
+    genero TEXT NOT NULL,
+    foto TEXT,
+    infoResponsavel TEXT,
+    ativo INTEGER AS Boolean NOT NULL DEFAULT 1
+);
+
+insert:
+INSERT INTO Aluno (id, nome, dataNascimento, idadeManual, genero, foto, infoResponsavel, ativo)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?);
+
+update:
+UPDATE Aluno SET nome = ?, dataNascimento = ?, idadeManual = ?, genero = ?, foto = ?, infoResponsavel = ?, ativo = ?
+WHERE id = ?;
+
+selectAll:
+SELECT * FROM Aluno;
+
+selectById:
+SELECT * FROM Aluno WHERE id = ?;
+
+delete:
+DELETE FROM Aluno WHERE id = ?;

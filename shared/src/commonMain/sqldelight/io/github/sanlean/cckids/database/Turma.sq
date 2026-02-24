@@ -1,0 +1,27 @@
+CREATE TABLE Turma (
+    id TEXT PRIMARY KEY NOT NULL,
+    nome TEXT NOT NULL,
+    faixaEtariaMin INTEGER NOT NULL,
+    faixaEtariaMax INTEGER NOT NULL,
+    ativa INTEGER AS Boolean NOT NULL DEFAULT 1
+);
+
+insert:
+INSERT INTO Turma (id, nome, faixaEtariaMin, faixaEtariaMax, ativa)
+VALUES (?, ?, ?, ?, ?);
+
+update:
+UPDATE Turma SET nome = ?, faixaEtariaMin = ?, faixaEtariaMax = ?, ativa = ?
+WHERE id = ?;
+
+selectAll:
+SELECT * FROM Turma;
+
+selectActive:
+SELECT * FROM Turma WHERE ativa = 1;
+
+selectById:
+SELECT * FROM Turma WHERE id = ?;
+
+delete:
+DELETE FROM Turma WHERE id = ?;

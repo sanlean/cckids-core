@@ -1,0 +1,20 @@
+import kotlinx.datetime.LocalDateTime;
+
+CREATE TABLE Material (
+    id TEXT PRIMARY KEY NOT NULL,
+    aulaId TEXT NOT NULL REFERENCES Aula(id),
+    enviadoPorProfessorId TEXT NOT NULL REFERENCES Professor(id),
+    tipo TEXT NOT NULL, -- FOTO | PDF | OUTRO
+    dataHora TEXT AS LocalDateTime NOT NULL,
+    url TEXT NOT NULL -- URL ou path do arquivo
+);
+
+insert:
+INSERT INTO Material (id, aulaId, enviadoPorProfessorId, tipo, dataHora, url)
+VALUES (?, ?, ?, ?, ?, ?);
+
+selectByAula:
+SELECT * FROM Material WHERE aulaId = ?;
+
+delete:
+DELETE FROM Material WHERE id = ?;

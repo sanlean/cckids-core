@@ -1,0 +1,21 @@
+import kotlinx.datetime.LocalDateTime;
+
+CREATE TABLE AulaProfessor (
+    aulaId TEXT NOT NULL REFERENCES Aula(id),
+    professorId TEXT NOT NULL REFERENCES Professor(id),
+    papel TEXT NOT NULL, -- PROFESSOR | AUXILIAR
+    PRIMARY KEY (aulaId, professorId)
+);
+
+insertProfessor:
+INSERT INTO AulaProfessor (aulaId, professorId, papel)
+VALUES (?, ?, ?);
+
+selectProfessoresByAula:
+SELECT p.*, ap.papel
+FROM Professor p
+JOIN AulaProfessor ap ON p.id = ap.professorId
+WHERE ap.aulaId = ?;
+
+deleteProfessoresByAula:
+DELETE FROM AulaProfessor WHERE aulaId = ?;

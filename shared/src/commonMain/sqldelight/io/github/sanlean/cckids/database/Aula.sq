@@ -1,0 +1,27 @@
+import kotlinx.datetime.LocalDateTime;
+
+CREATE TABLE Aula (
+    id TEXT PRIMARY KEY NOT NULL,
+    dateTime TEXT AS LocalDateTime NOT NULL,
+    culto TEXT NOT NULL, -- DOMINGO_MANHA, DOMINGO_NOITE, QUINTA
+    tipo TEXT NOT NULL, -- NORMAL | EVENTO
+    criadoEm TEXT AS LocalDateTime NOT NULL,
+    atualizadoEm TEXT AS LocalDateTime NOT NULL
+);
+
+insert:
+INSERT INTO Aula (id, dateTime, culto, tipo, criadoEm, atualizadoEm)
+VALUES (?, ?, ?, ?, ?, ?);
+
+update:
+UPDATE Aula SET dateTime = ?, culto = ?, tipo = ?, atualizadoEm = ?
+WHERE id = ?;
+
+selectAll:
+SELECT * FROM Aula ORDER BY dateTime DESC;
+
+selectById:
+SELECT * FROM Aula WHERE id = ?;
+
+delete:
+DELETE FROM Aula WHERE id = ?;
