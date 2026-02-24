@@ -1,0 +1,170 @@
+name: Build
+
+on:
+  workflow_run:
+    workflows: ["Checkout and Cache"]
+    types:
+      - completed
+
+jobs:
+  build-android:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v2
+        with:
+          distribution: 'adopt'
+          java-version: '17'
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      - name: Build Android
+        run: ./gradlew assembleDebug && ./gradlew assembleRelease
+
+  build-ios:
+    runs-on: macos-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v2
+        with:
+          distribution: 'adopt'
+          java-version: '17'
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      - name: Build iOS Frameworks
+        run: ./gradlew linkReleaseFrameworkIosArm64 linkReleaseFrameworkIosSimulatorArm64 linkReleaseFrameworkIosX64
+
+  build-macos:
+    runs-on: macos-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v2
+        with:
+          distribution: 'adopt'
+          java-version: '17'
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      - name: Build MacOS x64
+        run: ./gradlew compileKotlinMacosX64
+
+      - name: Link MacOS x64
+        run: ./gradlew linkMacosX64 && ./gradlew linkDebugSharedMacosX64 && ./gradlew linkReleaseSharedMacosX64
+
+      - name: Generate MacOS x64 binaries
+        run: ./gradlew macosX64Binaries
+
+      - name: Build MacOS Arm64
+        run: ./gradlew compileKotlinMacosArm64
+
+      - name: Link MacOS Arm64
+        run: ./gradlew linkMacosArm64 && ./gradlew linkReleaseSharedMacosArm64
+
+      - name: Generate MacOS Arm64 binaries
+        run: ./gradlew macosArm64Binaries
+
+  build-linux:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v2
+        with:
+          distribution: 'adopt'
+          java-version: '17'
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      - name: Build Linux x64
+        run: ./gradlew compileKotlinLinuxX64
+
+      - name: Link Linux x64
+        run: ./gradlew linkLinuxX64 && ./gradlew linkReleaseSharedLinuxX64
+
+      - name: Generate Linux x64 binaries
+        run: ./gradlew linuxX64Binaries
+
+      - name: Build Linux Arm64
+        run: ./gradlew compileKotlinLinuxArm64
+
+      - name: Link Linux Arm64
+        run: ./gradlew linkLinuxArm64 && ./gradlew linkReleaseSharedLinuxArm64
+
+      - name: Generate Linux Arm64 binaries
+        run: ./gradlew linuxArm64Binaries
+
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v2
+        with:
+          distribution: 'adopt'
+          java-version: '17'
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      - name: Build Windows
+        run: ./gradlew compileKotlinWindows
+
+      - name: Link Linux Windows
+        run: ./gradlew linkWindows && ./gradlew linkReleaseSharedWindows
+
+      - name: Generate Linux Windows binaries
+        run: ./gradlew windowsBinaries
+
+  build-js:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v2
+        with:
+          distribution: 'adopt'
+          java-version: '17'
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      - name: Build JS
+        run: ./gradlew jsBrowserProductionWebpack
+
+  build-jvm:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v2
+        with:
+          distribution: 'adopt'
+          java-version: '17'
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      - name: Build JVM
+        run: ./gradlew jvmJar
