@@ -1,0 +1,277 @@
+import com.vanniktech.maven.publish.SonatypeHost
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+
+plugins {
+    alias(libs.plugins.kotlinMultiplatform)
+    alias(libs.plugins.kotlinCocoapods)
+    alias(libs.plugins.androidLibrary)
+    alias(libs.plugins.sqldelight)
+    alias(libs.plugins.kotlinSerialization)
+    alias(libs.plugins.vanniktech.mavenPublish)
+}
+
+group = ConfigsConstants.group
+version = ConfigsConstants.version
+
+kotlin {
+    targets.all {
+        compilations.all {
+            this@kotlin.compilerOptions {
+                freeCompilerArgs.add("-opt-in=kotlin.experimental.ExperimentalNativeApi")
+                freeCompilerArgs.add("-Xexpect-actual-classes")
+            }
+        }
+    }
+    jvmToolchain(){
+        languageVersion.set(JavaLanguageVersion.of(17))
+    }
+    androidTarget {
+        publishLibraryVariants("release")
+        compilerOptions {
+            jvmTarget.set(JvmTarget.JVM_11)
+        }
+    }
+    listOf(
+        iosX64(),
+        iosArm64(),
+        iosSimulatorArm64()
+    ).forEach {
+        it.binaries.framework {
+            baseName = ConfigsConstants.project
+        }
+    }
+
+    iosX64()
+    iosArm64()
+    iosSimulatorArm64()
+
+    cocoapods {
+        summary = ConfigsConstants.projectDescription
+        homepage = ConfigsConstants.scmUrl
+        version = ConfigsConstants.version
+        authors = ConfigsConstants.author
+        license = ConfigsConstants.license
+        ios.deploymentTarget = "16.0"
+        framework {
+            baseName = ConfigsConstants.project
+            isStatic = true
+        }
+    }
+
+    jvm {
+        testRuns.named("test") {
+            executionTask.configure {
+                useJUnitPlatform()
+            }
+        }
+    }
+
+    js(IR) {
+        browser {
+            commonWebpackConfig {
+                cssSupport {
+                    enabled.set(true)
+                }
+            }
+            testTask{
+                useKarma {
+                    useChromiumHeadless()
+                }
+            }
+        }
+        binaries.executable()
+    }
+
+    listOf(
+        macosArm64(),
+        macosX64()
+    ).forEach {
+        it.binaries {
+            sharedLib {
+                baseName = ConfigsConstants.project
+            }
+        }
+    }
+    macosArm64()
+    macosX64()
+
+    linuxX64()
+    linuxArm64()
+
+    val arch = System.getProperty("os.arch")
+    listOf(
+        linuxX64(),
+        linuxArm64()
+    ).forEach {
+        it.binaries {
+            all {
+                linkerOpts += mutableListOf("-L$projectDir/libs/${it.targetName}")
+            }
+            sharedLib {
+                baseName = ConfigsConstants.project
+            }
+        }
+    }
+
+    mingwX64("windows"){
+            binaries.all {
+                linkerOpts += mutableListOf("-L$projectDir\\libs\\${targetName}")
+                linkerOpts += mutableListOf("-L$projectDir/libs/${targetName}")
+            }
+            binaries {
+                sharedLib {
+                    baseName = ConfigsConstants.project
+                }
+            }
+        }
+
+    
+    sourceSets {
+        commonMain.dependencies {
+            implementation(libs.ktor.client.core)
+            implementation(libs.ktor.client.negotiation)
+            implementation(libs.ktor.serialization.kotlinx)
+            implementation(libs.kotlinx.coroutines.core)
+            implementation(libs.kotlinx.coroutines.io)
+            implementation(libs.kotlinx.datetime)
+            implementation(libs.kotlinx.serialization.core)
+            implementation(libs.kotlinx.serialization.json)
+            implementation(libs.kotlinx.io.core)
+            implementation(libs.kotlinx.collections.immutable)
+            implementation(libs.sqldelight.runtime)
+            implementation(libs.sqldelight.coroutines.extensions)
+            implementation(libs.sqldelight.coroutines.primitive.adapters)
+        }
+        commonTest.dependencies {
+            implementation(libs.kotlin.test)
+            implementation(libs.kotlinx.coroutines.test)
+        }
+        val commonMain by getting
+        val jsMain by getting
+        val jvmMain by getting
+        val iosSimulatorArm64Main by getting
+        val iosArm64Main by getting
+        val iosX64Main by getting
+        val iosMain by creating {
+            dependsOn(commonMain)
+            iosSimulatorArm64Main.dependsOn(this)
+            iosArm64Main.dependsOn(this)
+            iosX64Main.dependsOn(this)
+            dependencies {
+                implementation(libs.ktor.client.darwin)
+                implementation(libs.sqldelight.driver.native)
+            }
+        }
+        val macosArm64Main by getting
+        val macosX64Main by getting
+        val macMain by creating {
+            dependsOn(commonMain)
+            macosX64Main.dependsOn(this)
+            macosArm64Main.dependsOn(this)
+            dependencies {
+                implementation(libs.ktor.client.darwin)
+                implementation(libs.sqldelight.driver.native)
+                implementation(libs.okio.client)
+            }
+        }
+        val linuxX64Main by getting
+        val linuxArm64Main by getting
+        val linuxMain by creating {
+            dependsOn(commonMain)
+            linuxX64Main.dependsOn(this)
+            linuxArm64Main.dependsOn(this)
+            dependencies {
+                implementation(libs.ktor.client.cio)
+                implementation(libs.sqldelight.driver.native)
+                implementation(libs.okio.client)
+            }
+        }
+        val windowsMain by getting
+        windowsMain.dependencies {
+            implementation(libs.okio.client)
+            implementation(libs.ktor.client.winhttp)
+            implementation(libs.sqldelight.driver.native)
+        }
+        jsMain.dependencies {
+            implementation(libs.sqldelight.driver.js.browser)
+            implementation(npm("sql.js", "1.6.2"))
+            implementation(devNpm("copy-webpack-plugin", "9.1.0"))
+        }
+        jvmMain.dependencies {
+            implementation(libs.ktor.client.apache5)
+            implementation(libs.sqldelight.driver.jvm)
+        }
+    }
+}
+
+android {
+    namespace = ConfigsConstants.namespace
+    compileSdk = ConfigsConstants.compileSdk
+    defaultConfig {
+        minSdk = ConfigsConstants.minSdk
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+    }
+
+    packaging {
+        resources {
+            excludes += "/META-INF/{AL2.0,LGPL2.1}"
+        }
+    }
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_11
+        targetCompatibility = JavaVersion.VERSION_11
+    }
+    dependencies {
+        implementation(libs.ktor.client.okhttp)
+        implementation(libs.kotlinx.coroutines.android)
+        implementation(libs.sqldelight.driver.android)
+    }
+}
+
+sqldelight {
+    databases {
+        create("Database") {
+            packageName.set(ConfigsConstants.namespace)
+            generateAsync.set(true)
+        }
+    }
+}
+
+mavenPublishing {
+    publishToMavenCentral(SonatypeHost.CENTRAL_PORTAL)
+    signAllPublications()
+    coordinates(ConfigsConstants.group, ConfigsConstants.project, ConfigsConstants.version)
+    pom {
+        name = ConfigsConstants.projectName
+        description = ConfigsConstants.projectDescription
+        inceptionYear = ConfigsConstants.projectYear
+        url = ConfigsConstants.scmUrl
+        licenses {
+            license {
+                name = ConfigsConstants.license
+                url = "https://opensource.org/license/mit"
+                distribution = "repo"
+            }
+        }
+        developers {
+            developer {
+                id = "sanlean"
+                name = ConfigsConstants.author
+                url = "https://github.com/sanlean"
+            }
+        }
+        scm {
+            url = ConfigsConstants.scmUrl
+            connection = "scm:git:git://github.com/sanlean/cckids-core.git"
+            developerConnection = "scm:git:ssh://github.com:sanlean/cckids-core.git"
+        }
+    }
+}
+
+tasks.register("listTargets") {
+    doLast {
+        kotlin.targets.forEach { target ->
+            println("Target: ${target.name}")
+        }
+    }
+}
