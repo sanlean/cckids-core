@@ -1,73 +1,267 @@
-# Minesweeper Core
+# CCKids Core - Contratos de API
 
-Minesweeper Core is a Kotlin Multiplatform (KMP) library that provides the core logic for a Minesweeper game. This project serves as both a functional game engine and a robust template for creating Kotlin Multiplatform libraries. It supports a wide range of platforms, including Windows, macOS, Linux, Android, iOS, JavaScript, and JVM, making it an ideal starting point for developers looking to build cross-platform applications.
+Este documento descreve os contratos de API propostos para o sistema CCKids. Todas as requisições devem seguir os padrões RESTful, utilizando JSON como formato de troca de dados.
 
-## Features
+## Sumário
+- [Autenticação](#autenticação)
+- [Aulas](#aulas)
+- [Alunos](#alunos)
+- [Professores](#professores)
+- [Check-ins](#check-ins)
+- [Materiais](#materiais)
 
-- **Minesweeper Game Logic**: Implements the core mechanics of the classic Minesweeper game, including board setup, mine placement, and game state management.
-- **Kotlin Multiplatform Support**: Targets multiple platforms, including Windows, macOS, Linux (x64 and ARM64), Android, iOS, JavaScript, and JVM.
-- **Ktor Client**: Configured with platform-specific clients for network operations.
-- **SQLDelight**: Integrated for database operations with platform-specific drivers.
-- **Modern Kotlin Libraries**: Utilizes the latest versions of Kotlin, Coroutines, Serialization, and DateTime libraries.
-- **Maven Central Deployment**: Configured for easy deployment to Maven Central using GitHub Actions.
+---
 
-## Game Logic
+## Autenticação
 
-The core logic of the Minesweeper game is encapsulated in the `Minesweeper` interface. It provides methods to interact with the game board, such as clicking cells and checking the game state. The `Builder` class allows for customizable game setup, including board dimensions and mine placement.
+### Login
+Realiza a autenticação do professor no sistema.
 
-### Minesweeper Interface
+- **URL:** `/auth/login`
+- **Método:** `POST`
+- **Body:**
+```json
+{
+  "email": "professor@igreja.com",
+  "password": "senha_segura"
+}
+```
+| Campo | Tipo | Obrigatório | Descrição |
+| :--- | :--- | :--- | :--- |
+| `email` | String | Sim | E-mail do professor |
+| `password` | String | Sim | Senha de acesso |
 
-```kotlin
-interface Minesweeper {
-    fun click(x: Int, y: Int): Boolean
-    fun clickAsQuestioned(x: Int, y: Int): Boolean
-    fun clickAsFlagged(x: Int, y: Int): Boolean
-    fun isGameOver(): GameState
-    val currentBoard: Board
-    val save: Save
+- **Response (200 OK):**
+```json
+{
+  "token": "jwt_token_aqui",
+  "professor": {
+    "id": "uuid-1",
+    "nome": "João Silva",
+    "email": "professor@igreja.com",
+    "status": "APPROVED",
+    "role": "PROFESSOR"
+  }
+}
+```
+| Campo | Tipo | Descrição |
+| :--- | :--- | :--- |
+| `token` | String | Token JWT para autenticação nas demais rotas |
+| `professor` | Object | Dados do professor logado (ver [Professor](#professor-dto)) |
+
+---
+
+## Aulas
+
+### Listar Aulas (Resumo)
+Retorna uma lista simplificada de aulas para visualização em grade ou lista.
+
+- **URL:** `/aulas`
+- **Método:** `GET`
+- **Headers:** `Authorization: Bearer <token>`
+- **Query Parameters:**
+  - `from` (opcional): Data inicial no formato ISO (ex: `2024-03-01T00:00:00`)
+  - `to` (opcional): Data final no formato ISO (ex: `2024-03-31T23:59:59`)
+
+- **Response (200 OK):**
+```json
+[
+  {
+    "id": "aula-123",
+    "data_hora": "2024-03-10T09:00:00",
+    "culto": "DOMINGO_MANHA",
+    "tipo": "NORMAL",
+    "status": "PLANNED",
+    "qtd_turmas": 2,
+    "qtd_professores": 3,
+    "qtd_materiais": 1,
+    "qtd_alunos": 15
+  }
+]
+```
+| Campo | Tipo | Descrição |
+| :--- | :--- | :--- |
+| `id` | String | ID único da aula |
+| `data_hora` | String | Data e hora em formato ISO |
+| `culto` | Enum | `DOMINGO_MANHA`, `DOMINGO_NOITE`, `QUINTA` |
+| `tipo` | Enum | `NORMAL`, `EVENTO` |
+| `status` | Enum | `PLANNED`, `WARNING`, `DONE` |
+| `qtd_turmas` | Int | Quantidade de turmas vinculadas |
+| `qtd_professores` | Int | Quantidade de professores vinculados |
+| `qtd_materiais` | Int | Quantidade de materiais disponíveis |
+| `qtd_alunos` | Int | Quantidade de alunos vinculados |
+
+---
+
+### Detalhes da Aula
+Retorna todos os detalhes de uma aula específica, incluindo as listas completas de turmas, professores, materiais e alunos.
+
+- **URL:** `/aulas/{id}`
+- **Método:** `GET`
+- **Headers:** `Authorization: Bearer <token>`
+
+- **Response (200 OK):**
+```json
+{
+  "id": "aula-123",
+  "data_hora": "2024-03-10T09:00:00",
+  "culto": "DOMINGO_MANHA",
+  "tipo": "NORMAL",
+  "status": "PLANNED",
+  "turmas": [
+    { "id": "t1", "nome": "Berçário", "faixa_etaria_min": 0, "faixa_etaria_max": 2, "ativa": true }
+  ],
+  "professores": [
+    {
+      "professor": { "id": "p1", "nome": "Maria", "email": "m@m.com", "status": "APPROVED", "role": "PROFESSOR" },
+      "papel": "PROFESSOR"
+    }
+  ],
+  "materiais": [
+    { "id": "m1", "aula_id": "aula-123", "professor_id": "p1", "tipo": "PDF", "data_hora": "2024-03-09T10:00:00", "url": "http://..." }
+  ],
+  "alunos": [
+    { "id": "a1", "nome": "Zezinho", "genero": "MASCULINO", "ativo": true }
+  ]
 }
 ```
 
-### Builder Class
-The Builder class provides a fluent API for configuring the game:
+---
 
-- **Width and Height**: Set the dimensions of the game board.
-- **Total Mines**: Specify the number of mines.
-- **Random Mines**: Option to randomly place mines.
-- **Save Adapter**: Customize save behavior with a SaveAdapter.
+## Alunos
 
-## Multiplatform Configuration
-The project is configured to support a wide range of platforms, leveraging Kotlin Multiplatform capabilities. Each platform has specific configurations for Ktor clients and SQLDelight drivers.
+### Pesquisar Alunos
+Busca alunos com filtros opcionais.
 
-### Supported Platforms
-- **JVM**: Uses Apache5 client for Ktor and JVM driver for SQLDelight.
-- **Android**: Configured with OkHttp client and Android driver for SQLDelight.
-- **iOS**: Utilizes Darwin client and native driver for SQLDelight.
-- **JavaScript**: Supports browser environments with Web Worker driver for SQLDelight.
-- **Windows, macOS, Linux**: Configured with platform-specific clients and native drivers.
+- **URL:** `/alunos`
+- **Método:** `GET`
+- **Headers:** `Authorization: Bearer <token>`
+- **Query Parameters:**
+  - `nome` (opcional): Filtro por nome
+  - `genero` (opcional): `MASCULINO`, `FEMININO`, `OUTRO`
+  - `ativo` (opcional): `true` ou `false`
+  - `turmaId` (opcional): ID da turma vinculada
 
-
-## Build and Deployment
-The project is set up with a GitHub Actions pipeline for building and deploying to Maven Central. The build.gradle.kts file includes all necessary plugins and configurations for a seamless CI/CD process.
-
-#### Key Plugins
-- **Kotlin Multiplatform**: For cross-platform support.
-- **SQLDelight**: For database operations.
-- **Ktor**: For HTTP client operations.
-- **Maven Publish**: For publishing to Maven Central.
-
-## Getting Started
-To get started with Minesweeper Core, clone the repository and open it in your favorite IDE. You can customize the game logic or use it as a template for your own Kotlin Multiplatform projects.
-
-```shell
-git clone https://github.com/sanlean/minesweeper.git
+- **Response (200 OK):**
+```json
+[
+  {
+    "id": "aluno-1",
+    "nome": "Lucas Santos",
+    "data_nascimento": "2018-05-20",
+    "idade_manual": null,
+    "genero": "MASCULINO",
+    "foto_url": "http://...",
+    "info_responsavel": "Mãe: Ana (99999-9999)",
+    "ativo": true
+  }
+]
 ```
 
-## License
-Minesweeper Core is licensed under the MIT License. See the [LICENSE]() file for more details.
+### Criar Aluno
+Cadastra um novo aluno.
 
-## Contributing
-Contributions are welcome! Feel free to open issues or submit pull requests to improve the project.
+- **URL:** `/alunos`
+- **Método:** `POST`
+- **Headers:** `Authorization: Bearer <token>`
+- **Body:**
+```json
+{
+  "nome": "Lucas Santos",
+  "genero": "MASCULINO",
+  "data_nascimento": "2018-05-20",
+  "idade_manual": null,
+  "foto_url": null,
+  "info_responsavel": "Pai: Pedro"
+}
+```
+| Campo | Tipo | Obrigatório | Descrição |
+| :--- | :--- | :--- | :--- |
+| `nome` | String | Sim | Nome completo do aluno |
+| `genero` | Enum | Sim | `MASCULINO`, `FEMININO`, `OUTRO` |
+| `data_nascimento` | String | Não | Data no formato YYYY-MM-DD |
+| `idade_manual` | Int | Não | Idade caso não tenha data de nascimento |
+| `foto_url` | String | Não | URL ou Base64 da foto |
+| `info_responsavel` | String | Não | Informações de contato dos responsáveis |
 
-## Contact
-For questions or feedback, please contact [Leandro Santana](https://github.com/sanlean).
+---
+
+## Check-ins
+
+### Realizar Check-in
+Registra a presença de um aluno em uma aula.
+
+- **URL:** `/checkins`
+- **Método:** `POST`
+- **Headers:** `Authorization: Bearer <token>`
+- **Body:**
+```json
+{
+  "aula_id": "aula-123",
+  "aluno_id": "aluno-1",
+  "professor_id": "prof-456",
+  "data_hora": "2024-03-10T09:15:00"
+}
+```
+| Campo | Tipo | Obrigatório | Descrição |
+| :--- | :--- | :--- | :--- |
+| `aula_id` | String | Sim | ID da aula |
+| `aluno_id` | String | Sim | ID do aluno |
+| `professor_id` | String | Sim | ID do professor que realizou o check-in |
+| `data_hora` | String | Não | Data/hora do check-in (servidor usa o atual se nulo) |
+
+---
+
+## Materiais
+
+### Upload de Material
+Vincula um novo material a uma aula.
+
+- **URL:** `/materiais`
+- **Método:** `POST`
+- **Headers:** `Authorization: Bearer <token>`
+- **Body:**
+```json
+{
+  "aula_id": "aula-123",
+  "professor_id": "prof-456",
+  "tipo": "PDF",
+  "url": "https://storage.cckids.com/materiais/aula123.pdf"
+}
+```
+
+### Download de Material (Base64)
+Retorna o conteúdo binário do material codificado em Base64.
+
+- **URL:** `/materiais/{id}/download`
+- **Método:** `GET`
+- **Headers:** `Authorization: Bearer <token>`
+
+- **Response (200 OK):**
+`"JVBERi0xLjQKJ..."` (String pura contendo o Base64)
+
+---
+
+## Objetos Comuns (DTOs)
+
+### Professor DTO
+```json
+{
+  "id": "String",
+  "nome": "String",
+  "email": "String",
+  "status": "PENDING | APPROVED",
+  "role": "COORDINATOR | PROFESSOR"
+}
+```
+
+### Turma DTO
+```json
+{
+  "id": "String",
+  "nome": "String",
+  "faixa_etaria_min": "Int",
+  "faixa_etaria_max": "Int",
+  "ativa": "Boolean"
+}
+```
