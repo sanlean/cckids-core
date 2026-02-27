@@ -239,7 +239,9 @@ sqldelight {
 
 mavenPublishing {
     publishToMavenCentral(SonatypeHost.CENTRAL_PORTAL)
-    signAllPublications()
+    // Desativado assinatura global para evitar erro quando as chaves não estão presentes localmente.
+    // As assinaturas são gerenciadas na CI via propriedades do Gradle.
+    // signAllPublications()
     coordinates(ConfigsConstants.group, ConfigsConstants.project, ConfigsConstants.version)
     pom {
         name = ConfigsConstants.projectName
