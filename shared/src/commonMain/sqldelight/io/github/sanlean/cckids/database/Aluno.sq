@@ -1,3 +1,5 @@
+import kotlin.Boolean;
+
 CREATE TABLE Aluno (
     id TEXT PRIMARY KEY NOT NULL,
     nome TEXT NOT NULL,
