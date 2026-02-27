@@ -3,7 +3,7 @@ name: Publish to maven local
 on:
   push:
     tags:
-      - "v*.*.*"
+      - "never"
 
 permissions:
   contents: write
@@ -24,55 +24,55 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
-#      - name: Decode GNUPG_SECRING_GPG
-#        env:
-#          GNUPG_SECRING_GPG: ${{ secrets.GNUPG_SECRING_GPG }}
-#        run: |
-#          mkdir -p $HOME/.gnupg
-#          echo "$GNUPG_SECRING_GPG" | base64 --decode > $HOME/.gnupg/secring.gpg
-#          ls -lah $HOME/.gnupg
-#
-#      - name: Decode GRADLE_PROPERTIES
-#        env:
-#          GRADLE_PROPERTIES: ${{ secrets.GRADLE_PROPERTIES }}
-#        run: |
-#          mkdir -p $HOME/.gradle
-#          echo "$GRADLE_PROPERTIES" | base64 --decode > $HOME/.gradle/gradle.properties
-#          cat $HOME/.gradle/gradle.properties
-#
-#      - name: Publish to Maven Local
-#        env:
-#          SIGNING_KEY_ID: ${{ secrets.SIGNING_KEY_ID }}
-#          SIGNING_PASSWORD: ${{ secrets.SIGNING_PASSWORD }}
-#        run: |
-#          ./gradlew publishToMavenLocal \
-#            -Psigning.secretKeyRingFile=$HOME/.gnupg/secring.gpg \
-#            -Psigning.password=$SIGNING_PASSWORD \
-#            -Psigning.keyId=$SIGNING_KEY_ID
-#
-#      - name: Publish to Maven Central
-#        env:
-#          SIGNING_KEY_ID: ${{ secrets.SIGNING_KEY_ID }}
-#          SIGNING_PASSWORD: ${{ secrets.SIGNING_PASSWORD }}
-#        run: |
-#          ./gradlew publishAllPublicationsToMavenCentralRepository \
-#            -Psigning.secretKeyRingFile=$HOME/.gnupg/secring.gpg \
-#            -Psigning.password=$SIGNING_PASSWORD \
-#            -Psigning.keyId=$SIGNING_KEY_ID
-#
-#      - name: Create Zip
-#        run: |
-#          zip -r "$(basename $GITHUB_REPOSITORY).zip" $HOME/.m2
-#
-#      - name: Upload Release Artifact
-#        uses: actions/upload-artifact@v4
-#        with:
-#          name: ${{ github.event.repository.name }}
-#          path: ${{ github.event.repository.name }}.zip
-#
-#      - name: Publish Release
-#        uses: softprops/action-gh-release@v2
-#        with:
-#          files: ${{ github.event.repository.name }}.zip
-#        env:
-#          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Decode GNUPG_SECRING_GPG
+        env:
+          GNUPG_SECRING_GPG: ${{ secrets.GNUPG_SECRING_GPG }}
+        run: |
+          mkdir -p $HOME/.gnupg
+          echo "$GNUPG_SECRING_GPG" | base64 --decode > $HOME/.gnupg/secring.gpg
+          ls -lah $HOME/.gnupg
+
+      - name: Decode GRADLE_PROPERTIES
+        env:
+          GRADLE_PROPERTIES: ${{ secrets.GRADLE_PROPERTIES }}
+        run: |
+          mkdir -p $HOME/.gradle
+          echo "$GRADLE_PROPERTIES" | base64 --decode > $HOME/.gradle/gradle.properties
+          cat $HOME/.gradle/gradle.properties
+
+      - name: Publish to Maven Local
+        env:
+          SIGNING_KEY_ID: ${{ secrets.SIGNING_KEY_ID }}
+          SIGNING_PASSWORD: ${{ secrets.SIGNING_PASSWORD }}
+        run: |
+          ./gradlew publishToMavenLocal \
+            -Psigning.secretKeyRingFile=$HOME/.gnupg/secring.gpg \
+            -Psigning.password=$SIGNING_PASSWORD \
+            -Psigning.keyId=$SIGNING_KEY_ID
+
+      - name: Publish to Maven Central
+        env:
+          SIGNING_KEY_ID: ${{ secrets.SIGNING_KEY_ID }}
+          SIGNING_PASSWORD: ${{ secrets.SIGNING_PASSWORD }}
+        run: |
+          ./gradlew publishAllPublicationsToMavenCentralRepository \
+            -Psigning.secretKeyRingFile=$HOME/.gnupg/secring.gpg \
+            -Psigning.password=$SIGNING_PASSWORD \
+            -Psigning.keyId=$SIGNING_KEY_ID
+
+      - name: Create Zip
+        run: |
+          zip -r "$(basename $GITHUB_REPOSITORY).zip" $HOME/.m2
+
+      - name: Upload Release Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ github.event.repository.name }}
+          path: ${{ github.event.repository.name }}.zip
+
+      - name: Publish Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ${{ github.event.repository.name }}.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
