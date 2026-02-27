@@ -13,7 +13,7 @@ internal fun Throwable.toDomainError(): DomainError {
 
     return when (this) {
 
-        is CancellationException -> throw this
+        is CancellationException -> DomainError.Cancellation
 
         is TimeoutCancellationException ->
             DomainError.Timeout

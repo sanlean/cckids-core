@@ -2,6 +2,8 @@ package io.github.sanlean.cckids.domain.result
 
 sealed class DomainError {
 
+    object Cancellation: DomainError()
+
     object NetworkUnavailable : DomainError()
 
     object Unauthorized : DomainError()
